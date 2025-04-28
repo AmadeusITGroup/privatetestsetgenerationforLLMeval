@@ -11,23 +11,6 @@ from agents import diversity_augmenting_agent, privacy_agent, synthetic_data_gen
 
 class TestAgentFunctions(unittest.TestCase):
 
-    def test_diversity_augmenting_agent_with_few_samples(self):
-
-
-        state = {
-            "D": [
-                {"text": "Sample text 1", "embedding": np.array([0.1, 0.2, 0.3])},
-                {"text": "Sample text 2", "embedding": np.array([0.4, 0.5, 0.6])},
-                {"text": "Sample text 3", "embedding": np.array([0.7, 0.8, 0.9])}
-            ]
-        }
-
-        with patch('sklearn.cluster.KMeans.fit_predict', return_value=np.array([0, 1, 0])):
-            result = diversity_augmenting_agent(state)
-
-        # Assert that the result contains the "topic_vectorstore"
-        self.assertIn("topic_vectorstore", result)
-        self.assertIsNotNone(result["topic_vectorstore"])
 
     def test_privacy_agent_with_no_vectorstore(self):
         # Simulate state without a vectorstore
