@@ -8,7 +8,7 @@ from langgraph.graph import StateGraph, END
 
 from pypdf import PdfReader
 from openai import AzureOpenAI
-from graph import create_graph
+from tools.graph import create_graph
 
 _ = load_dotenv(find_dotenv()) 
 
