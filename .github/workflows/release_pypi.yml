@@ -1,0 +1,138 @@
+name: Publish Python Package
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read 
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+    
+    - name: Cache pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('setup.py') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine pyyaml -r requirements.txt
+      
+    - name: Run tests
+      run: |
+        cd tests
+        python -m unittest
+
+    - name: Build package
+      run: python -m build
+
+
+    - name: 'Create env file'
+      run: |
+        touch .env
+        echo OPENAI_API_TYPE='azure' >> .env
+        echo OPENAI_API_VERSION='2024-08-01-preview' >> .env
+        echo AZURE_OPENAI_ENDPOINT='https://llmevaluationset.openai.azure.com/' >> .env
+        echo GPT_4_MODEL_DEPLOYMENT_NAME='gpt-4' >> .env
+        echo GPT_35_MODEL_DEPLOYMENT_NAME='gpt-35-turbo-16k' >> .env
+        echo EMBEDDING_DEPLOYMENT_NAME='text-embedding-ada-002' >> .env
+        echo API_KEY=${{ secrets.AZURE_API_KEY }} >> .env
+
+        cat .env
+     # Job to publish the distribution to PyPI on tag pushes.
+publish-to-pypi:
+  name: Publish Python 🐍 distribution 📦 to PyPI
+  if: startsWith(github.ref, 'refs/tags/')
+  needs: [build]
+  runs-on: ubuntu-latest
+  environment:
+    name: pypi
+    url: https://pypi.org/p/${{ needs.build.outputs.package_name }}
+  permissions:
+    id-token: write  # Required for trusted publishing
+  steps:
+  - name: Download all the dists
+    uses: actions/download-artifact@v4
+    with:
+      name: python-package-distributions
+      path: dist/
+  - name: Publish distribution 📦 to PyPI
+    uses: pypa/gh-action-pypi-publish@release/v1
+
+# Job to sign the distribution with Sigstore and upload it to GitHub Release.
+github-release:
+  name: Sign the Python 🐍 distribution 📦 with Sigstore and upload them to GitHub Release
+  needs: [publish-to-pypi]
+  runs-on: ubuntu-latest
+  permissions:
+    contents: write  # Required for making GitHub Releases
+    id-token: write  # Required for Sigstore
+  steps:
+  - name: Download all the dists
+    uses: actions/download-artifact@v4
+    with:
+      name: python-package-distributions
+      path: dist/
+  - name: Sign the dists with Sigstore
+    uses: sigstore/gh-action-sigstore-python@v3.0.0
+    with:
+      inputs: |
+        ./dist/*.tar.gz
+        ./dist/*.whl
+  - name: Delete the stub of Release
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    run: |
+      gh release delete "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes
+  - name: Create GitHub Release
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    run: |
+      gh release create "$GITHUB_REF_NAME" --title "Release $GITHUB_REF_NAME" --generate-notes --latest --repo "$GITHUB_REPOSITORY"
+  - name: Upload artifact signatures to GitHub Release
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    run: |
+      gh release upload "$GITHUB_REF_NAME" dist/** --repo "$GITHUB_REPOSITORY"
+
+# Job to publish the distribution to TestPyPI on pushes to the 'main' branch.
+publish-to-testpypi:
+  name: Publish Python 🐍 distribution 📦 to TestPyPI
+  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  needs: [build]
+  runs-on: ubuntu-latest
+  environment:
+    name: testpypi
+    url: https://test.pypi.org/p/${{ needs.build.outputs.package_name }}
+  permissions:
+    id-token: write  # Required for trusted publishing
+  steps:
+  - name: Download all the dists
+    uses: actions/download-artifact@v4
+    with:
+      name: python-package-distributions
+      path: dist/
+  - name: Publish distribution 📦 to TestPyPI
+    uses: pypa/gh-action-pypi-publish@release/v1
+    with:
+      repository-url: https://test.pypi.org/legacy/
+      skip-existing: true
+      verbose: true
