@@ -2,6 +2,9 @@ import os
 import re
 import csv
 import numpy as np
+from pathlib import Path
+src_path = Path(__file__).parent.parent / 'src/tools/'
+sys.path.append(str(src_path))
 from typing import TypedDict
 from dotenv import load_dotenv, find_dotenv
 from langgraph.graph import StateGraph, END
