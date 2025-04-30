@@ -3,6 +3,8 @@ import sys
 from langgraph.graph import StateGraph, END
 from tools.agents import diversity_augmenting_agent, privacy_agent, synthetic_data_generator
 from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 src_path = Path(__file__).parent.parent / 'src/tools/'
 sys.path.append(str(src_path))
 class AgentState(TypedDict, total=False):

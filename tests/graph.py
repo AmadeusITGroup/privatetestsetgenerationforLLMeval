@@ -2,9 +2,12 @@ from typing import TypedDict, Any
 from langgraph.graph import StateGraph, END
 from pathlib import Path
 import sys
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 src_path = Path(__file__).parent.parent / 'src/agents/'
 sys.path.append(str(src_path))
 from agents import diversity_augmenting_agent, privacy_agent, synthetic_data_generator
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 class AgentState(TypedDict, total=False):
 
