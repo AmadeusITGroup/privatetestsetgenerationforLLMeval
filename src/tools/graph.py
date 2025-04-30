@@ -1,6 +1,8 @@
 from typing import TypedDict, Any
 from langgraph.graph import StateGraph, END
-from agents import diversity_augmenting_agent, privacy_agent, synthetic_data_generator
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from tools.agents import diversity_augmenting_agent, privacy_agent, synthetic_data_generator
 
 class AgentState(TypedDict, total=False):
 

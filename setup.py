@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     
 setup(
     name='privatetestsetgenerationforLLMeval',
-    version='1.6',
+    version='2.2',
     author='Ilias',
     author_email='ilias.driouich@amadeus.com',
     description='A package for generating evaluation set for LLM-based chatbots in a diverse and private manner',
