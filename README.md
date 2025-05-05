@@ -64,22 +64,12 @@ GPT_4_MODEL_DEPLOYMENT_NAME=gpt-4
 
 
 
-Run the main pipeline:
-
-# to complete
-
-To provide a path to a PDF.
-To select the number of synthetic Q&A pairs to generate.
-The pipeline will:
-
-Process your document.
-Create a topic-augmented, privacy-safe synthetic dataset.
-Save a .csv file (e.g., qa_pairs10.csv) containing the generated Q&A pairs.
-
 
 📄 Example Output
 
 
 Question	Answer
-What are the primary goals of digital transformation?	To leverage technology to optimize business processes, enhance customer experiences, and create new revenue streams.
-How can data privacy be ensured when migrating to the cloud?	Through encryption, compliance audits, access control, and anonymization of sensitive data.
+What are the primary goals of digital transformation?
+To leverage technology to optimize business processes, enhance customer experiences, and create new revenue streams.
+How can data privacy be ensured when migrating to the cloud?
+Through encryption, compliance audits, access control, and anonymization of sensitive data.
