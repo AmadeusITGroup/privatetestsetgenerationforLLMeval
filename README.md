@@ -24,6 +24,22 @@ Each step is an autonomous "agent" in a pipeline:
 - **Privacy Agent**: Analyzes clusters and flags sensitive content.
 - **Synthetic Data Generator**: Creates QA samples while explaining coverage strategies.
 
+## Setup 
+
+Clone the repository:
+Install dependencies:
+pip install -r requirements.txt
+
+Create a .env file with the following variables:
+
+AZURE_OPENAI_KEY=<your_azure_openai_api_key>
+AZURE_OPENAI_API_VERSION=2023-12-01-preview
+AZURE_ENDPOINT=https://<your_azure_resource>.openai.azure.com/
+EMBEDDING_DEPLOYMENT_NAME=text-embedding-ada-002
+GPT_4_MODEL_DEPLOYMENT_NAME=gpt-4
+
+
+
 ## Usage 
 
 
@@ -49,18 +65,6 @@ Contributions to improve the tool are welcome! Feel free to open issues for bugs
 ## Acknowledgements
 
 This project utilizes various libraries, including LangChain for document processing and Presidio for PII detection and anonymization.
-
-
-
-Clone the repository:
-Install dependencies:
-pip install -r requirements.txt
-Create a .env file with the following variables:
-AZURE_OPENAI_KEY=<your_azure_openai_api_key>
-AZURE_OPENAI_API_VERSION=2023-12-01-preview
-AZURE_ENDPOINT=https://<your_azure_resource>.openai.azure.com/
-EMBEDDING_DEPLOYMENT_NAME=text-embedding-ada-002
-GPT_4_MODEL_DEPLOYMENT_NAME=gpt-4
 
 
 
