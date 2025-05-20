@@ -32,11 +32,17 @@ pip install -r requirements.txt
 
 Create a .env file with the following variables:
 
+
 AZURE_OPENAI_KEY=<your_azure_openai_api_key>
+
 AZURE_OPENAI_API_VERSION=2023-12-01-preview
+
 AZURE_ENDPOINT=https://<your_azure_resource>.openai.azure.com/
+
 EMBEDDING_DEPLOYMENT_NAME=text-embedding-ada-002
+
 GPT_4_MODEL_DEPLOYMENT_NAME=gpt-4
+
 
 
 
