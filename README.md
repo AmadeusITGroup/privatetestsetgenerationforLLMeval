@@ -73,10 +73,13 @@ Example Output
 
 
 Question	
+
 1.What are the primary goals of digital transformation?
 
 2.How can data privacy be ensured when migrating to the cloud?
+
 Answers
+
 1.To leverage technology to optimize business processes, enhance customer experiences, and create new revenue streams.
 
 2.Through encryption, compliance audits, access control, and anonymization of sensitive data.
