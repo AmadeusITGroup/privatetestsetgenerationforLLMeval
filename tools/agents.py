@@ -7,17 +7,21 @@ from dotenv import load_dotenv, find_dotenv
 from presidio_analyzer import AnalyzerEngine
 
 from langchain_openai import AzureChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.docstore.document import Document
+from langchain_core.prompts import PromptTemplate
+from langchain_community.docstore.document import Document
 from sklearn.cluster import KMeans
-_ = load_dotenv(find_dotenv())
+
+load_dotenv(find_dotenv())
 
 # Environment variables
 openai_api_key = os.getenv("AZURE_OPENAI_KEY")
 openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
 azure_openai_endpoint = os.getenv("AZURE_ENDPOINT")
-gpt_4_model_deployment_name = os.getenv("GPT_4_MODEL_DEPLOYMENT_NAME", "GPT-4")
-embedding_deployment_name = os.getenv("EMBEDDING_DEPLOYMENT_NAME", "text-embedding-ada-002")
+azure_openapi_deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "GPT-4")
+embedding_deployment_name = os.getenv(
+    "EMBEDDING_DEPLOYMENT_NAME", "text-embedding-ada-002"
+)
+
 
 ###############################################################################
 # 1) DIVERSITY AUGMENTING AGENT
@@ -36,10 +40,12 @@ def diversity_augmenting_agent(state: dict[str, Any]) -> dict[str, Any]:
     # Extract embeddings + text
     embeddings = np.array([item["embedding"] for item in embedded_data])
     texts = [item["text"] for item in embedded_data]
-    
+
     # K-Means clustering
     num_clusters = 10
-    print(f"Performing K-Means with {num_clusters} clusters on {len(embeddings)} embeddings.")
+    print(
+        f"Performing K-Means with {num_clusters} clusters on {len(embeddings)} embeddings."
+    )
     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init="auto")
     labels = kmeans.fit_predict(embeddings)
 
@@ -67,7 +73,7 @@ def diversity_augmenting_agent(state: dict[str, Any]) -> dict[str, Any]:
         doc_content = "\n---\n".join(combined_samples)
         doc = Document(
             page_content=doc_content,
-            metadata={"cluster_id": cluster_id, "title": cluster_title}
+            metadata={"cluster_id": cluster_id, "title": cluster_title},
         )
         cluster_docs.append(doc)
 
@@ -81,42 +87,42 @@ def diversity_augmenting_agent(state: dict[str, Any]) -> dict[str, Any]:
     print("==================================\n")
 
     # Clear vector store after the run
-    #state["topic_vectorstore"] = None  # Ensuring the vector store is cleaned
+    # state["topic_vectorstore"] = None  # Ensuring the vector store is cleaned
 
     return {**state, "topic_vectorstore": topic_vectorstore}
+
 
 def _generate_cluster_title(sample_text: str) -> str:
     """
     Use GPT-4 to create a short descriptive title for a cluster.
     """
-    prompt_template = PromptTemplate.from_template(
-        """
+    prompt_template = PromptTemplate.from_template("""
         You are a clustering assistant. The following is a short excerpt from one cluster:
         {sample_text}
 
         Provide a concise (3-7 words) title that best represents the overall topic or domain.
         No additional commentary, just the title.
-        """
-    )
+        """)
     llm = AzureChatOpenAI(
         api_key=openai_api_key,
         api_version=openai_api_version,
-        deployment_name=gpt_4_model_deployment_name,
-        model_name="gpt-4-32k",
+        azure_deployment=azure_openapi_deployment_name,
+        azure_endpoint=azure_openai_endpoint,
     )
     chain = prompt_template | llm
     response = chain.invoke({"sample_text": sample_text[:1000]})
     return response.content.strip()
 
+
 def build_vectorstore_from_docs(docs: list[Document]):
-    """
-    """
+    """ """
     from langchain_openai import AzureOpenAIEmbeddings
-    from langchain.vectorstores import Chroma
+    from langchain_chroma.vectorstores import Chroma
 
     azure_embedder = AzureOpenAIEmbeddings(
-        openai_api_key=openai_api_key,
-        azure_deployment=embedding_deployment_name
+        azure_endpoint=azure_openai_endpoint,
+        api_key=openai_api_key,
+        azure_deployment=embedding_deployment_name,
     )
 
     return Chroma.from_documents(
@@ -126,8 +132,7 @@ def build_vectorstore_from_docs(docs: list[Document]):
     )
 
 
-_ = load_dotenv(find_dotenv())
-
+load_dotenv(find_dotenv())
 
 
 ###############################################################################
@@ -158,8 +163,16 @@ def privacy_agent(state: dict[str, Any]) -> dict[str, Any]:
 
     # Define the entities we want to detect
     entity_types = [
-        "PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CREDIT_CARD", "BANK_ACCOUNT", 
-        "DATE_TIME", "LOCATION", "IP_ADDRESS", "CREDIT_CARD", "MEDICAL_INFORMATION"
+        "PERSON",
+        "PHONE_NUMBER",
+        "EMAIL_ADDRESS",
+        "CREDIT_CARD",
+        "BANK_ACCOUNT",
+        "DATE_TIME",
+        "LOCATION",
+        "IP_ADDRESS",
+        "CREDIT_CARD",
+        "MEDICAL_INFORMATION",
     ]
 
     for d in docs:
@@ -167,7 +180,7 @@ def privacy_agent(state: dict[str, Any]) -> dict[str, Any]:
         combined_text += text + "\n\n"
 
         # Use Presidio to analyze the text
-        results = analyzer.analyze(text=text, entities=entity_types, language='en')
+        results = analyzer.analyze(text=text, entities=entity_types, language="en")
 
         # Count and store the detected entities
         for result in results:
@@ -183,7 +196,7 @@ def privacy_agent(state: dict[str, Any]) -> dict[str, Any]:
 
     Breakdown by Entity Type:
     """
-    
+
     for entity_type, count in sensitive_entities.items():
         report += f"\n- {entity_type}: {count}"
 
@@ -194,8 +207,6 @@ def privacy_agent(state: dict[str, Any]) -> dict[str, Any]:
     print(report)
 
     return {**state, "privacy_analysis_report": report, "D_priv": combined_text}
-
-
 
 
 ###############################################################################
@@ -234,8 +245,8 @@ def synthetic_data_generator(state: dict[str, Any]) -> dict[str, Any]:
     llm = AzureChatOpenAI(
         api_key=openai_api_key,
         api_version=openai_api_version,
-        deployment_name=gpt_4_model_deployment_name,
-        model_name="gpt-4-32k",
+        azure_deployment=azure_openapi_deployment_name,
+        azure_endpoint=azure_openai_endpoint,
     )
     chain = prompt_template | llm
     response = chain.invoke({"sanitized_text": D_priv})
@@ -245,11 +256,11 @@ def synthetic_data_generator(state: dict[str, Any]) -> dict[str, Any]:
     qa_pairs = _extract_qa_pairs(synthesis_report)
 
     # Save Q&As to CSV
-    csv_filename = "qa_pairs" +str(qa_count) +".csv"
+    csv_filename = "qa_pairs" + str(qa_count) + ".csv"
     with open(csv_filename, mode="w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["Question", "Answer"])
-        for (q, a) in qa_pairs:
+        for q, a in qa_pairs:
             writer.writerow([q, a])
 
     print(f"Saved {qa_count} Q&A pairs to '{csv_filename}'.")
@@ -259,6 +270,7 @@ def synthetic_data_generator(state: dict[str, Any]) -> dict[str, Any]:
         f"(Note: Q&A pairs have been extracted and saved to '{csv_filename}'.)"
     )
     return {**state, "D_synth": final_report}
+
 
 def _extract_qa_pairs(text: str) -> list[tuple[str, str]]:
     """

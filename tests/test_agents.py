@@ -1,17 +1,16 @@
 import unittest
-from unittest.mock import patch
-import numpy as np
 import sys
 
 from pathlib import Path
-src_path = Path(__file__).parent.parent / 'src/run/tools/'
+
+src_path = Path(__file__).parent.parent / "src/run/tools/"
 sys.path.append(str(src_path))
 
 
 from agents import diversity_augmenting_agent, privacy_agent, synthetic_data_generator
 
-class TestAgentFunctions(unittest.TestCase):
 
+class TestAgentFunctions(unittest.TestCase):
 
     def test_privacy_agent_with_no_vectorstore(self):
         # Simulate state without a vectorstore
@@ -29,5 +28,6 @@ class TestAgentFunctions(unittest.TestCase):
 
         self.assertEqual(result["D_synth"], "No data to synthesize.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

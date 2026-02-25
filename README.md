@@ -26,28 +26,30 @@ Each step is an autonomous "agent" in a pipeline:
 
 ## Setup 
 
-Clone the repository:
-Install dependencies:
-pip install -r requirements.txt
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/AmadeusITGroup/privatetestsetgenerationforLLMeval.git
+    ```
+2. Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+3. Configure environment variables in a .env file:
+    ```bash
 
-Create a .env file with the following variables:
+    AZURE_OPENAI_KEY=<your_azure_openai_api_key>
 
+    AZURE_OPENAI_API_VERSION=<the api version used in your azure resource>
 
-AZURE_OPENAI_KEY=<your_azure_openai_api_key>
+    AZURE_ENDPOINT=https://<your_azure_resource>.openai.azure.com/
 
-AZURE_OPENAI_API_VERSION=2023-12-01-preview
+    EMBEDDING_DEPLOYMENT_NAME=<the name of the embedding deployment in your azure resource>
 
-AZURE_ENDPOINT=https://<your_azure_resource>.openai.azure.com/
-
-EMBEDDING_DEPLOYMENT_NAME=text-embedding-ada-002
-
-GPT_4_MODEL_DEPLOYMENT_NAME=gpt-4
-
-
+    AZURE_OPENAI_DEPLOYMENT_NAME=<the name of the OpenAI LLM deployment in your azure resource>
+    ```
 
 
 ## Usage 
-
 
 To use the tool, follow these steps:
 
@@ -58,8 +60,18 @@ To use the tool, follow these steps:
 
 
 
-```
-
+ ```
+> [!WARNING]
+> **Presidio Analyzer may fail on corporate networks (SSL error).**  
+> When `AnalyzerEngine()` starts, Presidio may try to auto-download a spaCy model.  
+> If your environment uses a self-signed/corporate proxy certificate, you can get:
+> `SSLCertVerificationError: certificate verify failed`
+>
+> **Fix (recommended): install the spaCy model from a wheel (no runtime download).**
+> 1. Check spaCy version: `python -c "import spacy; print(spacy.__version__)"`
+> 2. Download the matching `en_core_web_lg` wheel from spaCy model releases
+> 3. Install locally: `pip install path\to\en_core_web_lg-<version>-py3-none-any.whl`
+> 4. Verify: `python -c "import spacy; print(spacy.util.is_package('en_core_web_lg'))"`
   
    
 ## Contributing

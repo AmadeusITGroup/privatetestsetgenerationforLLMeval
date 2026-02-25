@@ -42,8 +42,7 @@ jobs:
         echo OPENAI_API_TYPE='azure' >> .env
         echo OPENAI_API_VERSION='2024-08-01-preview' >> .env
         echo AZURE_OPENAI_ENDPOINT='https://llmevaluationset.openai.azure.com/' >> .env
-        echo GPT_4_MODEL_DEPLOYMENT_NAME='gpt-4' >> .env
-        echo GPT_35_MODEL_DEPLOYMENT_NAME='gpt-35-turbo-16k' >> .env
+        echo AZURE_OPENAI_DEPLOYMENT_NAME='gpt-4' >> .env
         echo EMBEDDING_DEPLOYMENT_NAME='text-embedding-ada-002' >> .env
         echo API_KEY=${{ secrets.AZURE_API_KEY }} >> .env
 

@@ -1,10 +1,10 @@
 import os
 import re
-import csv
 import numpy as np
 import sys
 from pathlib import Path
-src_path = Path(__file__).parent.parent / 'src/tools/'
+
+src_path = Path(__file__).parent.parent / "src/tools/"
 sys.path.append(str(src_path))
 from typing import TypedDict
 from dotenv import load_dotenv, find_dotenv
@@ -14,23 +14,28 @@ from pypdf import PdfReader
 from openai import AzureOpenAI
 from tools.graph import create_graph
 
-_ = load_dotenv(find_dotenv()) 
+_ = load_dotenv(find_dotenv())
 
 # Basic Azure config from your environment (adjust as needed)
 openai_api_key = os.getenv("AZURE_OPENAI_KEY")
 openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
-azure_endpoint = os.getenv("AZURE_ENDPOINT")
+azure_openai_endpoint = os.getenv("AZURE_ENDPOINT")
 
 # The deployment name for the embedding model
-EMBEDDING_DEPLOYMENT_NAME = os.getenv("EMBEDDING_DEPLOYMENT_NAME", "text-embedding-ada-002")
+EMBEDDING_DEPLOYMENT_NAME = os.getenv(
+    "EMBEDDING_DEPLOYMENT_NAME", "text-embedding-ada-002"
+)
+
 
 class PipelineInput(TypedDict):
     """
     The user input state for the pipeline:
       - file_path: Path to a PDF file
     """
+
     file_path: str
     continue_pipeline: bool
+
 
 def extract_sentences(text: str) -> list[str]:
     """
@@ -39,7 +44,8 @@ def extract_sentences(text: str) -> list[str]:
     """
     sentence_pattern = re.compile(r'(?<!\w\.\w)(?<![A-Z][a-z]\.)(?<=\.|\?|!)"?(?=\s|$)')
     raw_sentences = sentence_pattern.split(text)
-    return [s.strip() for s in raw_sentences if s.strip() and re.search(r'\w', s)]
+    return [s.strip() for s in raw_sentences if s.strip() and re.search(r"\w", s)]
+
 
 def load_pdf_as_sentences(file_path: str) -> list[str]:
     """
@@ -59,6 +65,7 @@ def load_pdf_as_sentences(file_path: str) -> list[str]:
     print(f"Total sentences extracted: {len(sentences)}")
     return sentences
 
+
 def embed_sentences_azure(sentences: list[str]) -> list[dict]:
     """
     1) Takes a list of sentences (strings).
@@ -70,24 +77,24 @@ def embed_sentences_azure(sentences: list[str]) -> list[dict]:
 
     client = AzureOpenAI(
         api_key=openai_api_key,
-        api_version=openai_api_version
+        api_version=openai_api_version,
+        azure_endpoint=azure_openai_endpoint,
     )
 
-    print(f"Embedding {len(sentences)} sentences with model '{EMBEDDING_DEPLOYMENT_NAME}'...")
+    print(
+        f"Embedding {len(sentences)} sentences with model '{EMBEDDING_DEPLOYMENT_NAME}'..."
+    )
     response = client.embeddings.create(
-        input=sentences,
-        model=EMBEDDING_DEPLOYMENT_NAME
+        input=sentences, model=EMBEDDING_DEPLOYMENT_NAME
     )
 
     embedded_samples = []
     for sentence_text, embed_obj in zip(sentences, response.data):
         vec = np.array(embed_obj.embedding)
-        embedded_samples.append({
-            "text": sentence_text,
-            "embedding": vec
-        })
+        embedded_samples.append({"text": sentence_text, "embedding": vec})
 
     return embedded_samples
+
 
 def get_user_input(state: PipelineInput) -> PipelineInput:
     """
@@ -95,11 +102,12 @@ def get_user_input(state: PipelineInput) -> PipelineInput:
     """
     if state.get("file_path") == "":
         user_input = input("Enter the path to your PDF file (or 'q' to quit): ").strip()
-        if user_input.lower() == 'q' or user_input == '':
+        if user_input.lower() == "q" or user_input == "":
             return {"file_path": "", "continue_pipeline": False}
         return {"file_path": user_input, "continue_pipeline": True}
     else:
         return {"file_path": "", "continue_pipeline": False}
+
 
 def run_pipeline(state: PipelineInput):
     """
@@ -115,7 +123,9 @@ def run_pipeline(state: PipelineInput):
         return state
 
     # 1) Prompt user for how many Q&A pairs to generate
-    user_input_count = input("How many Q&A pairs would you like to generate? (Default: 10): ")
+    user_input_count = input(
+        "How many Q&A pairs would you like to generate? (Default: 10): "
+    )
     try:
         qa_count = int(user_input_count)
     except ValueError:
@@ -135,18 +145,18 @@ def run_pipeline(state: PipelineInput):
 
     # 4) Create and invoke the multi-agent pipeline
     workflow = create_graph()
-    final_state = workflow.invoke({
-        "D": embedded_dataset,
-        "qa_count": qa_count  
-    })
+    final_state = workflow.invoke({"D": embedded_dataset, "qa_count": qa_count})
 
     # 5) Print final synthetic dataset
     print("\n--- Final Synthetic Dataset ---")
     synthetic_data = final_state.get("D_synth", "<No synthetic data found>")
     print(synthetic_data)
-    print(f"If the pipeline completed successfully, {qa_count} Q&A pairs have been saved to 'qa_pairs.csv'.")
+    print(
+        f"If the pipeline completed successfully, {qa_count} Q&A pairs have been saved to 'qa_pairs.csv'."
+    )
 
     return state
+
 
 def create_main_graph() -> StateGraph:
     """
@@ -163,24 +173,23 @@ def create_main_graph() -> StateGraph:
     workflow.add_conditional_edges(
         "get_input",
         lambda x: "continue" if x["continue_pipeline"] else "end",
-        {
-            "continue": "run_pipeline",
-            "end": END
-        }
+        {"continue": "run_pipeline", "end": END},
     )
 
     workflow.add_edge("run_pipeline", "get_input")
 
     return workflow.compile()
 
+
 def main():
     conversation_graph = create_main_graph()
-    
+
     # Initialize the state with empty or default values
     initial_state = {"file_path": "", "continue_pipeline": True}
-    
+
     # Execute the pipeline and stop asking for input after the first run
     conversation_graph.invoke(initial_state)
+
 
 if __name__ == "__main__":
     main()

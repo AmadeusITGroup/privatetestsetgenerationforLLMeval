@@ -2,6 +2,7 @@ from typing import TypedDict, Any
 from langgraph.graph import StateGraph, END
 from agents import diversity_augmenting_agent, privacy_agent, synthetic_data_generator
 
+
 class AgentState(TypedDict, total=False):
 
     D: list  # Embedded dataset
@@ -17,21 +18,15 @@ def create_graph():
 
     # Add agents to the workflow
     workflow.add_node("diversity", diversity_augmenting_agent)
-  #  workflow.add_node("privacy_analysis", privacy_analyzer_agent)  # Stage 1: Analyze entities for PII
+    #  workflow.add_node("privacy_analysis", privacy_analyzer_agent)  # Stage 1: Analyze entities for PII
     workflow.add_node("privacy", privacy_agent)  # Stage 2: Pseudonymize data
     workflow.add_node("synthesis", synthetic_data_generator)
-
-
 
     # Define the pipeline structure
     workflow.set_entry_point("diversity")
     workflow.add_edge("diversity", "privacy")  # Link diversity to privacy analysis
- #   workflow.add_edge("privacy_analysis", "privacy")  # Link privacy analysis to pseudonymization
+    #   workflow.add_edge("privacy_analysis", "privacy")  # Link privacy analysis to pseudonymization
     workflow.add_edge("privacy", "synthesis")  # Link pseudonymization to synthesis
     workflow.add_edge("synthesis", END)  # End the workflow
 
     return workflow.compile()
-
-
-
-
