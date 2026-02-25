@@ -1,26 +1,19 @@
-import sys
-from pathlib import Path
-
-src_path = Path(__file__).parent.parent / "src/run/tools/"
-sys.path.append(str(src_path))
-
 import unittest
-from graph import create_graph
+
 from langgraph.graph import StateGraph
+
+from run.tools.graph import AgentState, create_graph
+from run.tools.agents import (
+    diversity_augmenting_agent,
+    privacy_agent,
+    synthetic_data_generator,
+)
 
 
 class TestAgentsGraph(unittest.TestCase):
 
     def setUp(self):
-        from graph import AgentState
-
         self.workflow = StateGraph(AgentState)
-
-        from agents import (
-            diversity_augmenting_agent,
-            privacy_agent,
-            synthetic_data_generator,
-        )
 
         self.workflow.add_node("diversity", diversity_augmenting_agent)
         self.workflow.add_node("privacy", privacy_agent)

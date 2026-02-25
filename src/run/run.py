@@ -1,20 +1,15 @@
 import os
 import re
 import numpy as np
-import sys
-from pathlib import Path
-
-src_path = Path(__file__).parent.parent / "src/tools/"
-sys.path.append(str(src_path))
 from typing import TypedDict
 from dotenv import load_dotenv, find_dotenv
 from langgraph.graph import StateGraph, END
 
 from pypdf import PdfReader
 from openai import AzureOpenAI
-from tools.graph import create_graph
+from .tools.graph import create_graph
 
-_ = load_dotenv(find_dotenv())
+load_dotenv(find_dotenv())
 
 # Basic Azure config from your environment (adjust as needed)
 openai_api_key = os.getenv("AZURE_OPENAI_KEY")

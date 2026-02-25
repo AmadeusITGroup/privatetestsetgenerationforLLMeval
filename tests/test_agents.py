@@ -1,13 +1,9 @@
 import unittest
-import sys
 
-from pathlib import Path
-
-src_path = Path(__file__).parent.parent / "src/run/tools/"
-sys.path.append(str(src_path))
-
-
-from agents import diversity_augmenting_agent, privacy_agent, synthetic_data_generator
+from run.tools.agents import (
+    privacy_agent,
+    synthetic_data_generator,
+)
 
 
 class TestAgentFunctions(unittest.TestCase):

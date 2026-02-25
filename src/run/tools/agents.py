@@ -11,13 +11,13 @@ from langchain_core.prompts import PromptTemplate
 from langchain_community.docstore.document import Document
 from sklearn.cluster import KMeans
 
-_ = load_dotenv(find_dotenv())
+load_dotenv(find_dotenv())
 
 # Environment variables
 openai_api_key = os.getenv("AZURE_OPENAI_KEY")
 openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
 azure_openai_endpoint = os.getenv("AZURE_ENDPOINT")
-gpt_4_model_deployment_name = os.getenv("GPT_4_MODEL_DEPLOYMENT_NAME", "GPT-4")
+azure_openai_deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "GPT-4")
 embedding_deployment_name = os.getenv(
     "EMBEDDING_DEPLOYMENT_NAME", "text-embedding-ada-002"
 )
@@ -106,8 +106,8 @@ def _generate_cluster_title(sample_text: str) -> str:
     llm = AzureChatOpenAI(
         api_key=openai_api_key,
         api_version=openai_api_version,
-        deployment_name=gpt_4_model_deployment_name,
-        model_name="gpt-4-32k",
+        azure_deployment=azure_openai_deployment_name,
+        azure_endpoint=azure_openai_endpoint,
     )
     chain = prompt_template | llm
     response = chain.invoke({"sample_text": sample_text[:1000]})
@@ -132,7 +132,7 @@ def build_vectorstore_from_docs(docs: list[Document]):
     )
 
 
-_ = load_dotenv(find_dotenv())
+load_dotenv(find_dotenv())
 
 
 ###############################################################################
@@ -245,8 +245,8 @@ def synthetic_data_generator(state: dict[str, Any]) -> dict[str, Any]:
     llm = AzureChatOpenAI(
         api_key=openai_api_key,
         api_version=openai_api_version,
-        deployment_name=gpt_4_model_deployment_name,
-        model_name="gpt-4-32k",
+        azure_deployment=azure_openai_deployment_name,
+        azure_endpoint=azure_openai_endpoint,
     )
     chain = prompt_template | llm
     response = chain.invoke({"sanitized_text": D_priv})
