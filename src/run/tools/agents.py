@@ -6,17 +6,18 @@ from typing import Any
 from dotenv import load_dotenv, find_dotenv
 from presidio_analyzer import AnalyzerEngine
 
-from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_community.docstore.document import Document
 from sklearn.cluster import KMeans
+
+from .models import create_openai_model_instance, ModelType
 
 load_dotenv(find_dotenv())
 
 # Environment variables
 openai_api_key = os.getenv("AZURE_OPENAI_KEY")
 openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
-azure_openai_endpoint = os.getenv("AZURE_ENDPOINT")
+azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 azure_openai_deployment_name = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "GPT-4")
 embedding_deployment_name = os.getenv(
     "EMBEDDING_DEPLOYMENT_NAME", "text-embedding-ada-002"
@@ -103,11 +104,11 @@ def _generate_cluster_title(sample_text: str) -> str:
         Provide a concise (3-7 words) title that best represents the overall topic or domain.
         No additional commentary, just the title.
         """)
-    llm = AzureChatOpenAI(
-        api_key=openai_api_key,
-        api_version=openai_api_version,
-        azure_deployment=azure_openai_deployment_name,
-        azure_endpoint=azure_openai_endpoint,
+    llm = create_openai_model_instance(
+        azure_openai_key=openai_api_key,
+        azure_openai_api_version=openai_api_version,
+        azure_openai_deployment=azure_openai_deployment_name,
+        azure_openai_endpoint=azure_openai_endpoint,
     )
     chain = prompt_template | llm
     response = chain.invoke({"sample_text": sample_text[:1000]})
@@ -116,13 +117,13 @@ def _generate_cluster_title(sample_text: str) -> str:
 
 def build_vectorstore_from_docs(docs: list[Document]):
     """ """
-    from langchain_openai import AzureOpenAIEmbeddings
     from langchain_chroma.vectorstores import Chroma
 
-    azure_embedder = AzureOpenAIEmbeddings(
-        azure_endpoint=azure_openai_endpoint,
-        api_key=openai_api_key,
-        azure_deployment=embedding_deployment_name,
+    azure_embedder = create_openai_model_instance(
+        model_type=ModelType.EMBEDDING,
+        azure_openai_endpoint=azure_openai_endpoint,
+        azure_openai_key=openai_api_key,
+        azure_openai_deployment=embedding_deployment_name,
     )
 
     return Chroma.from_documents(
@@ -242,11 +243,11 @@ def synthetic_data_generator(state: dict[str, Any]) -> dict[str, Any]:
     - Section: "Procedure for QA Sample Generation"
     - Section: "QA Pairs" ({qa_count} pairs, each with 'Q:' and 'A:')
     """)
-    llm = AzureChatOpenAI(
-        api_key=openai_api_key,
-        api_version=openai_api_version,
-        azure_deployment=azure_openai_deployment_name,
-        azure_endpoint=azure_openai_endpoint,
+    llm = create_openai_model_instance(
+        azure_openai_key=openai_api_key,
+        azure_openai_api_version=openai_api_version,
+        azure_openai_deployment=azure_openai_deployment_name,
+        azure_openai_endpoint=azure_openai_endpoint,
     )
     chain = prompt_template | llm
     response = chain.invoke({"sanitized_text": D_priv})

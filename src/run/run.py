@@ -6,15 +6,15 @@ from dotenv import load_dotenv, find_dotenv
 from langgraph.graph import StateGraph, END
 
 from pypdf import PdfReader
-from openai import AzureOpenAI
 from .tools.graph import create_graph
+from .tools.models import create_openai_model_instance, ModelType
 
 load_dotenv(find_dotenv())
 
 # Basic Azure config from your environment (adjust as needed)
 openai_api_key = os.getenv("AZURE_OPENAI_KEY")
 openai_api_version = os.getenv("AZURE_OPENAI_API_VERSION")
-azure_openai_endpoint = os.getenv("AZURE_ENDPOINT")
+azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
 
 # The deployment name for the embedding model
 EMBEDDING_DEPLOYMENT_NAME = os.getenv(
@@ -70,10 +70,11 @@ def embed_sentences_azure(sentences: list[str]) -> list[dict]:
     if not sentences:
         return []
 
-    client = AzureOpenAI(
-        api_key=openai_api_key,
-        api_version=openai_api_version,
-        azure_endpoint=azure_openai_endpoint,
+    client = create_openai_model_instance(
+        model_type=ModelType.GENERAL,
+        azure_openai_endpoint=azure_openai_endpoint,
+        azure_openai_api_version=openai_api_version,
+        azure_openai_key=openai_api_key,
     )
 
     print(

@@ -41,13 +41,19 @@ Each step is an autonomous "agent" in a pipeline:
 
     AZURE_OPENAI_API_VERSION=<the api version used in your azure resource>
 
-    AZURE_ENDPOINT=https://<your_azure_resource>.openai.azure.com/
+    AZURE_OPENAI_ENDPOINT=https://<your_azure_resource>.openai.azure.com/
 
     EMBEDDING_DEPLOYMENT_NAME=<the name of the embedding deployment in your azure resource>
 
     AZURE_OPENAI_DEPLOYMENT_NAME=<the name of the OpenAI LLM deployment in your azure resource>
     ```
-
+   
+> [!TIP]
+> It is possible to use `Entra ID Authentication` instead of `Key Authentication` to connect to Azure OpenAI.
+> To do so, follow these steps:
+> 1. Check if `az` CLI is installed, if not, install it from https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+> 2. Login to your Azure account using `az login` and set the correct subscription where your Azure OpenAI resource is provisioned.
+> 3. If everything is set up correctly, once installed, the package should automatically use `Azure Credentials` to authenticate when an `AZURE_OPENAI_KEY` is not found in the environment variables.
 
 ## Usage 
 
